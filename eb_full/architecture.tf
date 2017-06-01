@@ -3,10 +3,15 @@ provider "aws" {
   region = "${var.region}"
 }
 
-# IAM role entry
+# IAM instance profile. 1:1 container for the role, usually implicitly created in the console.
+resource "aws_iam_instance_profile" "smashingwebsite_instance_profile" {
+  name  = "smashingwebsite_instance_profile"
+  role = "${aws_iam_role.smashingwebsite_role.name}"
+}
+
+# IAM role entry. Missing the default EB Web tier one for now
 resource "aws_iam_role" "smashingwebsite_role" {
   name = "smashingwebsite_role"
-  # nice, easy, elegant.
   assume_role_policy = <<HERE_DOC
 {
   "Version": "2012-10-17",
@@ -84,13 +89,13 @@ resource "aws_s3_bucket" "smashingwebsite_live" {
 
 #EB application entry
 resource "aws_elastic_beanstalk_application" "smashingwebsite_app" {
-  name        = "${var.site_name}"
+  name        = "smashingwebsite"
   description = "live deploy for our smashingwebsite"
 }
 
 #EB instance entry
 resource "aws_elastic_beanstalk_environment" "smashingwebsite_instance" {
-  name                = "${var.site_name}-live"
+  name                = "smashingwebsite-live"
   application         = "${aws_elastic_beanstalk_application.smashingwebsite_app.name}"
   solution_stack_name = "64bit Amazon Linux 2017.03 v2.4.0 running Python 3.4"
 
@@ -100,9 +105,14 @@ resource "aws_elastic_beanstalk_environment" "smashingwebsite_instance" {
     value = "t2.micro"
   }
   setting {
-  namespace = "aws:elasticbeanstalk:command"
-  name = "BatchSize"
-  value = "1"
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "IamInstanceProfile"
+    value = "${aws_iam_instance_profile.smashingwebsite_instance_profile.name}"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name = "BatchSize"
+    value = "1"
   }
   setting {
     namespace = "aws:autoscaling:updatepolicy:rollingupdate"
