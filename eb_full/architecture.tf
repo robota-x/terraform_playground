@@ -37,8 +37,8 @@ resource "aws_iam_role_policy" "smashingwebsite_inline_policy" {
                 "s3:*"
             ],
             "Resource": [
-                "arn:aws:s3:::assets.smashingwebsite.co.uk",
-                "arn:aws:s3:::assets.smashingwebsite.co.uk/*"
+                "arn:aws:s3:::${aws_s3_bucket.smashingwebsite_live.bucket}",
+                "arn:aws:s3:::${aws_s3_bucket.smashingwebsite_live.bucket}/*"
             ]
         },
         {
@@ -53,7 +53,7 @@ resource "aws_iam_role_policy" "smashingwebsite_inline_policy" {
         {
             "Condition": {
                 "StringLike": {
-                    "ses:FromAddress": "*@smashingwebsite.co.uk"
+                    "ses:FromAddress": "*@${var.site_name}"
                 }
             },
             "Effect": "Allow",
@@ -73,7 +73,7 @@ EOF
 
 #S3 Buckets entry
 resource "aws_s3_bucket" "smashingwebsite_live" {
-  bucket = "assets.smashingwebsite.co.uk"
+  bucket = "${var.site_name}"
   acl    = "private"
 
   tags {
