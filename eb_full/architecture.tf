@@ -81,3 +81,42 @@ resource "aws_s3_bucket" "smashingwebsite_live" {
     Environment = "Live"
   }
 }
+
+#EB application entry
+resource "aws_elastic_beanstalk_application" "smashingwebsite_app" {
+  name        = "${var.site_name}"
+  description = "live deploy for our smashingwebsite"
+}
+
+#EB instance entry
+resource "aws_elastic_beanstalk_environment" "smashingwebsite_instance" {
+  name                = "${var.site_name}-live"
+  application         = "${aws_elastic_beanstalk_application.smashingwebsite_app.name}"
+  solution_stack_name = "64bit Amazon Linux 2017.03 v2.4.0 running Python 3.4"
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "InstanceType"
+    value = "t2.micro"
+  }
+  setting {
+  namespace = "aws:elasticbeanstalk:command"
+  name = "BatchSize"
+  value = "1"
+  }
+  setting {
+    namespace = "aws:autoscaling:updatepolicy:rollingupdate"
+    name = "RollingUpdateEnabled"
+    value = "true"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name = "DeploymentPolicy"
+    value = "Rolling"
+  }
+  setting {
+    namespace = "aws:elb:policies"
+    name = "ConnectionDrainingEnabled"
+    value = "true"
+  }
+}
