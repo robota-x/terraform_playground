@@ -4,8 +4,8 @@ provider "aws" {
 }
 
 # IAM role entry
-resource "aws_iam_role" "smashing_website_role" {
-  name = "smashing_website_role"
+resource "aws_iam_role" "smashingwebsite_role" {
+  name = "smashingwebsite_role"
   # nice, easy, elegant.
   assume_role_policy = <<HERE_DOC
 {
@@ -24,9 +24,9 @@ HERE_DOC
 }
 
 # IAM role policy (important: different from plain policies. Used for inline in roles.)
-resource "aws_iam_role_policy" "smashing_website_inline_policy" {
-  name = "smashing_website_inline_policy"
-  role = "${aws_iam_role.smashing_website_role.id}"
+resource "aws_iam_role_policy" "smashingwebsite_inline_policy" {
+  name = "smashingwebsite_inline_policy"
+  role = "${aws_iam_role.smashingwebsite_role.id}"
   # this could/will be interpolated with names defined in resources.
   policy = <<EOF
 {
@@ -69,4 +69,15 @@ resource "aws_iam_role_policy" "smashing_website_inline_policy" {
     ]
 }
 EOF
+}
+
+#S3 Buckets entry
+resource "aws_s3_bucket" "smashingwebsite_live" {
+  bucket = "assets.smashingwebsite.co.uk"
+  acl    = "private"
+
+  tags {
+    Name        = "smashingwebsite"
+    Environment = "Live"
+  }
 }
